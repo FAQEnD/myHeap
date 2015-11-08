@@ -1,0 +1,10 @@
+Makefile
+Makefile.Debug
+Makefile.Release
+debug
+release
+*.autosave
+*.dat
+debug/*
+release/*
+*.pro.user
