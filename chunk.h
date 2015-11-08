@@ -26,12 +26,14 @@ public:
     void info();
     bool createChunk(unsigned int, unsigned int, bool);
     char *alloc(unsigned int);
-//    void free();
+    void free(char*);
+    void splitFreeChunks();
 
     //members
 private:
     const unsigned int _MAX_HEAP_MEMORY = 10;
     unsigned int _memoryAviable;
+    unsigned int getAviableMemory();
 public:
     std::vector<Chunk> chunks;
     char heapMemory[10];

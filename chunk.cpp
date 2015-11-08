@@ -34,7 +34,7 @@ Heap::Heap()
 void Heap::info()
 {
     qDebug() << "Maximum heap size: " << _MAX_HEAP_MEMORY;
-    qDebug() << "Memory aviable: " << _memoryAviable;
+    qDebug() << "Memory aviable: " << getAviableMemory();
     qDebug() << "Chunks created: " << chunks.size();
     qDebug() << "\n --Chunks list-- ";
     for(auto chunk : chunks)
@@ -85,4 +85,43 @@ char* Heap::alloc(unsigned int size)
     }
     qDebug() << "Not enoght memory";
     return NULL;
+}
+
+void Heap::free(char *p)
+{
+//    qDebug() << "Got ptr:" << static_cast<void*>(p);
+    for(unsigned int i = 0; i < chunks.size(); ++i)
+    {
+//        qDebug() << "Chunk index adress: " << static_cast<void*>(&heapMemory[chunks[i].mCellIndex]);
+        if(p == &heapMemory[chunks[i].mCellIndex])
+        {
+            qDebug() << "Chunk with ID: " << i << "removed";
+            chunks[i].isFree = true;
+        }
+    }
+    splitFreeChunks();
+}
+
+void Heap::splitFreeChunks()
+{
+    for(unsigned int i = 0; i < chunks.size()-1; ++i)
+    {
+        if(chunks[i].isFree == true && chunks[i+1].isFree == true)
+        {
+            chunks[i].size += chunks[i+1].size;
+            chunks.erase(chunks.begin()+i+1);
+            --i;
+        }
+    }
+}
+
+unsigned int Heap::getAviableMemory()
+{
+    unsigned int aviableMemoryInChunks = 0;
+    for(unsigned int i = 0; i < chunks.size(); ++i)
+    {
+        if(chunks[i].isFree == true)
+            aviableMemoryInChunks += chunks[i].size;
+    }
+    return aviableMemoryInChunks;
 }
