@@ -3,7 +3,7 @@
 #include <QtDebug>
 #include <vector>
 #include <QString>
-class Chunk
+struct Chunk
 {
 public:
     // methods
@@ -17,7 +17,7 @@ public:
     unsigned int id;
 };
 
-class Heap
+struct Heap
 {
 public:
     //methods
