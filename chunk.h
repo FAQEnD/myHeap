@@ -14,8 +14,7 @@ public:
     unsigned int size;
     unsigned int mCellIndex;
     bool isFree;
-private:
-    unsigned int _id;
+    unsigned int id;
 };
 
 class Heap
@@ -24,9 +23,11 @@ public:
     //methods
     Heap();
     void info();
-    bool createChunk(unsigned int, unsigned int, bool);
-    char *alloc(unsigned int);
-    void free(char*);
+    bool createChunk(unsigned int, unsigned int, bool, unsigned int);
+    void *alloc(unsigned int);
+    void free(void *);
+    void *realloc(void*, unsigned int);
+
     void splitFreeChunks();
 
     //members
