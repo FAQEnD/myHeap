@@ -8,35 +8,30 @@ Chunk::Chunk(unsigned int size, unsigned int index, unsigned int id, bool isFree
     this->isFree = isFree;
 }
 
-void Chunk::info()
+void Chunk::info(void)
 {
-    qDebug() << "------------------";
-    qDebug() << "Chunk id: " << id;
-    qDebug() << "Size: " << size;
-    qDebug() << "Memory cell index: " << mCellIndex;
-    QString str;
+    std::cout << "------------------" << std::endl;
+    std::cout << "Chunk id: " << id << std::endl;
+    std::cout << "Size: " << size << std::endl;
+    std::cout << "Memory cell index: " << mCellIndex << std::endl;
+    std::string str;
     isFree == true? str = "free" : str = "used";
-    qDebug() << "Chunk is: " << str;
-    qDebug() << "------------------";
+    std::cout << "Chunk is: " << str << std::endl;
+    std::cout << "------------------" << std::endl;
 }
 
-Heap::Heap()
+Heap::Heap(void)
 {
     _memoryAviable = _MAX_HEAP_MEMORY;
-//    heapMemory.resize(_MAX_HEAP_MEMORY);
     createChunk(_MAX_HEAP_MEMORY, 0, true, 0);
-//    createChunk(3, 5, false);
-//    createChunk(2, 7, false);
-//    createChunk(2, 7, false);
-    //    createChunk(_MAX_HEAP_MEMORY, 0, true); // shoud return false
 }
 
-void Heap::info()
+void Heap::info(void)
 {
-    qDebug() << "Maximum heap size: " << _MAX_HEAP_MEMORY;
-    qDebug() << "Memory aviable: " << getAviableMemory();
-    qDebug() << "Chunks created: " << chunks.size();
-    qDebug() << "\n --Chunks list-- ";
+    std::cout << "Maximum heap size: " << _MAX_HEAP_MEMORY << std::endl;
+    std::cout << "Memory aviable: " << getAviableMemory() << std::endl;
+    std::cout << "Chunks created: " << chunks.size() << std::endl;
+    std::cout << "\n --Chunks list-- " << std::endl;
     for(auto chunk : chunks)
         chunk.info();
 }
@@ -46,10 +41,8 @@ bool Heap::createChunk(unsigned int size, unsigned int index, bool isFree, unsig
     if(size <= 0)
         return false;
     if(size > _MAX_HEAP_MEMORY || size > _memoryAviable)
-    {
-        qDebug() << "Not enoght memory";
         return false;
-    }
+
     _memoryAviable -= size;
     if((size == _MAX_HEAP_MEMORY && id == 0) || (_memoryAviable == _MAX_HEAP_MEMORY))
     {
@@ -58,93 +51,80 @@ bool Heap::createChunk(unsigned int size, unsigned int index, bool isFree, unsig
         return true;
     }
 
-    Chunk newChunk(size, index, id+1, isFree);
-    chunks.insert(chunks.begin()+id, newChunk);
-    std::swap(chunks[id], chunks[id+1]);
-    QString isMemoryFree;
-    isFree == true? isMemoryFree = "free" : isMemoryFree = "used";
-    qDebug() << "New chunk with size: " << size << " and memory cell index: " << index << " created as" << isMemoryFree;
-    for(unsigned int i = id; i < chunks.size(); ++i)
+    Chunk newChunk(size, index, id + 1, isFree);
+    chunks.insert(chunks.begin() + id, newChunk);
+    std::swap(chunks[id], chunks[id + 1]);
+
+    for(unsigned int i = id; i < chunks.size(); ++ i)
         chunks[i].id = i;
+
     return true;
 }
 
 void *Heap::alloc(unsigned int size)
 {
-    if(size <= 0)
+    if(size <= 0) // wtf? Idiots defence
         return NULL;
-    if(size > _MAX_HEAP_MEMORY || size > getAviableMemory())
-    {
-        qDebug() << "Not enoght memory";
+    if(size > _MAX_HEAP_MEMORY || size > getAviableMemory()) // not enoght memory
         return NULL;
-    }
-    for(unsigned int i = 0; i < chunks.size(); ++i)
+    for(unsigned int i = 0; i < chunks.size(); ++ i)
     {
         if(chunks[i].size >= size && chunks[i].isFree == true)
         {
             unsigned int sizeDifference = chunks[i].size - size;
             _memoryAviable += sizeDifference;
-            chunks[i].size = size;
-            chunks[i].isFree = false;
+            chunks[i].size = size; // resize chunk to needed size
+            chunks[i].isFree = false; // switch flag to 'used'
             createChunk(sizeDifference, chunks[i].mCellIndex + chunks[i].size, true, i);
             return &heapMemory[chunks[i].mCellIndex];
         }
     }
-    qDebug() << "Not enoght memory";
     return NULL;
 }
 
-void Heap::free(void *p)
+void Heap::free(void *beginPtr)
 {
-//    qDebug() << "Got ptr:" << static_cast<void*>(p);
-    for(unsigned int i = 0; i < chunks.size(); ++i)
-    {
-//        qDebug() << "Chunk index adress: " << static_cast<void*>(&heapMemory[chunks[i].mCellIndex]);
-        if(p == &heapMemory[chunks[i].mCellIndex])
-        {
-            qDebug() << "Chunk with ID: " << i << "removed";
+    if(beginPtr < &heapMemory[0] || beginPtr > &heapMemory[_MAX_HEAP_MEMORY])
+        return;
+    for(unsigned int i = 0; i < chunks.size(); ++ i)
+        if(beginPtr == &heapMemory[chunks[i].mCellIndex])
             chunks[i].isFree = true;
-        }
-    }
     splitFreeChunks();
 }
 
-void *Heap::realloc(void *p, unsigned int size)
+void *Heap::realloc(void *beginPtr, unsigned int size)
 {
     if(size <= 0)
         return NULL;
-    if(size > _MAX_HEAP_MEMORY)
-    {
-        qDebug() << "Not enoght memory";
+    if(size > _MAX_HEAP_MEMORY) // not enoght memory
         return NULL;
-    }
 
-    for(unsigned int i = 0; i < chunks.size(); ++i)
+    for(unsigned int i = 0; i < chunks.size(); ++ i)
     {
-        if(p == &heapMemory[chunks[i].mCellIndex])
+        if(beginPtr == &heapMemory[chunks[i].mCellIndex]) // find our chunk
         {
-            if(size == chunks[i].size) // if same size
-                return p;
+            if(size == chunks[i].size) // if same size, return p
+                return beginPtr;
 
-            if(size > chunks[i].size && i < chunks.size()-1) // if want to do bigger
+            if(size > chunks[i].size && i < chunks.size() - 1) // if we wanna more memory
             {
                 unsigned int newSize = size - chunks[i].size;
-                if(chunks[i+1].isFree == true && chunks[i+1].size >= newSize)
+                if(chunks[i + 1].isFree == true && chunks[i + 1].size >= newSize) // if we have free chunk near
                 {
-                    if(chunks[i+1].size == newSize)
+                    if(chunks[i + 1].size == newSize)
                     {
                         chunks[i].size += newSize;
-                        chunks.erase(chunks.begin()+i+1);
+                        chunks.erase(chunks.begin() + i + 1);
                     }
                     else
-                        if(chunks[i+1].size > newSize)
+                        if(chunks[i + 1].size > newSize)
                         {
                             chunks[i].size += newSize;
-                            chunks[i+1].mCellIndex += newSize;
-                            chunks[i+1].size -= newSize;
+                            chunks[i + 1].mCellIndex += newSize;
+                            chunks[i + 1].size -= newSize;
                         }
                 }
-                return &heapMemory[chunks[i].mCellIndex];
+                return beginPtr;
             }
             if(size < chunks[i].size)
             {
@@ -153,31 +133,28 @@ void *Heap::realloc(void *p, unsigned int size)
                 chunks[i].size = size;
                 createChunk(sizeDifference, chunks[i].mCellIndex + chunks[i].size, true, i);
                 splitFreeChunks();
-                return &heapMemory[chunks[i].mCellIndex];
+                return beginPtr;
             }
         }
     }
-
     return NULL;
 }
 
-void Heap::splitFreeChunks()
+void Heap::splitFreeChunks(void)
 {
-    for(unsigned int i = 0; i < chunks.size()-1; ++i)
-    {
-        if(chunks[i].isFree == true && chunks[i+1].isFree == true)
+    for(unsigned int i = 0; i < chunks.size() - 1; ++ i)
+        if(chunks[i].isFree == true && chunks[i + 1].isFree == true)
         {
-            chunks[i].size += chunks[i+1].size;
-            chunks.erase(chunks.begin()+i+1);
-            --i;
+            chunks[i].size += chunks[i + 1].size;
+            chunks.erase(chunks.begin() + i + 1);
+            -- i;
         }
-    }
 }
 
 unsigned int Heap::getAviableMemory()
 {
     unsigned int aviableMemoryInChunks = 0;
-    for(unsigned int i = 0; i < chunks.size(); ++i)
+    for(unsigned int i = 0; i < chunks.size(); ++ i)
     {
         if(chunks[i].isFree == true)
             aviableMemoryInChunks += chunks[i].size;
