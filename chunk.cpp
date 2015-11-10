@@ -38,8 +38,6 @@ void Heap::info(void)
 
 bool Heap::createChunk(unsigned int size, unsigned int index, bool isFree, unsigned int id)
 {
-    if(size <= 0)
-        return false;
     if(size > _MAX_HEAP_MEMORY || size > _memoryAviable)
         return false;
 
@@ -63,8 +61,6 @@ bool Heap::createChunk(unsigned int size, unsigned int index, bool isFree, unsig
 
 void *Heap::alloc(unsigned int size)
 {
-    if(size <= 0) // wtf? Idiots defence
-        return NULL;
     if(size > _MAX_HEAP_MEMORY || size > getAviableMemory()) // not enoght memory
         return NULL;
     for(unsigned int i = 0; i < chunks.size(); ++ i)
@@ -94,8 +90,6 @@ void Heap::free(void *beginPtr)
 
 void *Heap::realloc(void *beginPtr, unsigned int size)
 {
-    if(size <= 0)
-        return NULL;
     if(size > _MAX_HEAP_MEMORY) // not enoght memory
         return NULL;
 

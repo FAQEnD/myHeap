@@ -60,12 +60,12 @@ struct Heap
 
     //members
 private:
-    const unsigned int _MAX_HEAP_MEMORY = 10;
+    const unsigned int _MAX_HEAP_MEMORY = 1000;
     unsigned int _memoryAviable;
     unsigned int getAviableMemory();
 public:
     std::vector<Chunk> chunks;
-    char heapMemory[10]; // My Heap aviable physical memory
+    char heapMemory[1000]; // My Heap aviable physical memory
 };
 
 #endif // CHUNK_H
